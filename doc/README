@@ -1,0 +1,22 @@
+Translation credits
+###################
+
+I keep a copy of all translations in this repository so that it's easy
+to host translations on the Beautiful Soup website. These are
+generally not the canonical versions of the translations, though.
+
+doc.jp/index.html is a copy of the 2013 Japanese translation hosted at
+http://kondou.com/BS4/. Translation credit goes to "shige".
+
+doc.ko/index.html is a copy of the 2012 Korean translation formerly hosted
+at http://coreapython.hosting.paran.com/etc/beautifulsoup4.html. I
+retrieved this copy from the Wayback Machine. I'm not sure who wrote
+the translation but I believe the credit goes to "Johnsonj".
+
+doc.ptbr/source/index.rst is a 2019 Brazilian Portuguese translation by Cezar
+Peixeiro. The version in this repository has been modified from
+https://github.com/czrpxr/BeautifulSoup4-ptbr-translation.
+
+doc.zh/source/index.rst is a 2018 Chinese translation by Deron
+Wang. The version in this repository has been modified from
+https://github.com/DeronW/beautifulsoup.

@@ -129,6 +129,20 @@ from bs4._warnings import (
     XMLParsedAsHTMLWarning,
 )
 
+"""
+new class for the SoupReplacer Implement
+
+"""
+
+class SoupReplacer:
+    """
+    Specifies a tag replacement to happen during parsing.
+    All occurrences of og_tag will be replaced by alt_tag.
+    """
+    def __init__(self, og_tag, alt_tag):
+        self.og_tag = og_tag
+        self.alt_tag = alt_tag
+
 
 class BeautifulSoup(Tag):
     """A data structure representing a parsed HTML or XML document.
@@ -267,6 +281,14 @@ class BeautifulSoup(Tag):
          TreeBuilder by passing in arguments, not just by saying which
          one to use.
         """
+        ##----the replacer workflow---
+        self.replacer = kwargs.pop('replacer', None)
+        if self.replacer and not isinstance(self.replacer, SoupReplacer):
+            # You might need to import SoupReplacer here if it's in a separate file
+            raise ValueError("The 'replacer' argument must be a SoupReplacer instance.")
+        ##---END----
+
+
         if "convertEntities" in kwargs:
             del kwargs["convertEntities"]
             warnings.warn(

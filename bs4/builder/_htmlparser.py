@@ -179,6 +179,15 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
             sourceline, sourcepos = self.getpos()
         else:
             sourceline = sourcepos = None
+            # --- New Code for SoupReplacer Execution ---
+            # Access the replacer object stored on the BeautifulSoup instance
+            replacer = self.soup.replacer
+
+            # Check if replacement is enabled and matches the current tag name
+            if replacer and replacer.og_tag == name:
+                name = replacer.alt_tag  # Replace the tag name before object creation
+            # --- End New Code ---
+
         tag = self.soup.handle_starttag(
             name, None, None, attr_dict, sourceline=sourceline, sourcepos=sourcepos
         )

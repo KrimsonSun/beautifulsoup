@@ -126,19 +126,74 @@ PYTHON_SPECIFIC_ENCODINGS: Set[_Encoding] = set(
         "string_escape",
     ]
 )
+
+
 class SoupReplacer:
     """
-    Specifies a tag replacement to happen during parsing.
-    All occurrences of og_tag will be replaced by alt_tag.
+    Handles tag transformation logic for BeautifulSoup.
+    Supports:
+      - M2: SoupReplacer("old", "new")
+      - M3: SoupReplacer(name_xformer, attrs_xformer, xformer)
     """
-    def __init__(self, og_tag, alt_tag):
-        self.og_tag = og_tag
-        self.alt_tag = alt_tag
-    def replace_tag(self, tag_name):
-        
-        if tag_name == self.og_tag:
-            return self.alt_tag
-        return tag_name
+
+    def __init__(self, *args, name_xformer=None, attrs_xformer=None, xformer=None):
+        self.name_xformer = name_xformer
+        self.attrs_xformer = attrs_xformer
+        self.xformer = xformer
+
+        # --- Milestone 2 compatibility ---
+        if args:
+            if name_xformer or attrs_xformer or xformer:
+                raise ValueError("Cannot mix positional and keyword args (M2 vs M3).")
+            if len(args) != 2:
+                raise ValueError("M2 form: SoupReplacer('old', 'new')")
+            old_tag, new_tag = args
+
+            # M2 uses a simple tag name replacement
+            def m2_name_xformer(tag):
+                if tag == old_tag:
+                    return new_tag
+                return tag
+
+            self.name_xformer = m2_name_xformer
+
+    def replace(self, tag):
+        """Apply all transformations to a Tag instance."""
+        # 1️ name_xformer(tag)
+        if self.name_xformer:
+            new_name = self.name_xformer(tag)
+            if isinstance(new_name, str):
+                tag.name = new_name
+
+        # 2️ xformer(tag)
+        if self.xformer:
+            self.xformer(tag)
+
+        # 3️ attrs_xformer(tag.attrs)
+        if self.attrs_xformer:
+            result = self.attrs_xformer(tag)
+            # 
+            if result is not None:
+                if not isinstance(result, dict):
+                    raise TypeError("attrs_xformer must return dict or None")
+                tag.attrs = result
+    #   SoupReplacer create soup
+    def __call__(self, markup):
+        """Return a BeautifulSoup object that applies this replacer to all tags."""
+        from bs4 import BeautifulSoup, Tag
+
+        # Monkey-patch Tag.__init__ to inject replacer
+        original_init = Tag.__init__
+
+        def patched_init(tag_self, *args, **kwargs):
+            kwargs['replacer'] = self
+            original_init(tag_self, *args, **kwargs)
+
+        Tag.__init__ = patched_init
+        soup = BeautifulSoup(markup, "html.parser")
+        Tag.__init__ = original_init  # Restore
+        return soup
+
 
 class NamespacedAttribute(str):
     """A namespaced attribute (e.g. the 'xml:lang' in 'xml:lang="en"')
@@ -1629,13 +1684,13 @@ class Tag(PageElement):
 
     def __init__(
         self,
-        parser: Optional[BeautifulSoup] = None,
+        parser: Optional["BeautifulSoup"]=None,
         builder: Optional[TreeBuilder] = None,
         name: Optional[str] = None,
         namespace: Optional[str] = None,
         prefix: Optional[str] = None,
         attrs: Optional[_RawOrProcessedAttributeValues] = None,
-        parent: Optional[Union[BeautifulSoup, Tag]] = None,
+        parent: Optional[Union["BeautifulSoup", Tag]] = None,
         previous: _AtMostOneElement = None,
         is_xml: Optional[bool] = None,
         sourceline: Optional[int] = None,
@@ -1645,6 +1700,7 @@ class Tag(PageElement):
         preserve_whitespace_tags: Optional[Set[str]] = None,
         interesting_string_types: Optional[Set[Type[NavigableString]]] = None,
         namespaces: Optional[Dict[str, str]] = None,
+        replacer=None,
         # NOTE: Any new arguments here need to be mirrored in
         # Tag.copy_self, and potentially BeautifulSoup.new_tag
         # as well.
@@ -1699,7 +1755,8 @@ class Tag(PageElement):
                     if isinstance(v, list):
                         v = v.__class__(v)
                     self.attrs[k] = v
-
+        if replacer:
+            replacer.replace(self)## add replacer
         # If possible, determine ahead of time whether this tag is an
         # XML tag.
         if builder:
@@ -1748,7 +1805,7 @@ class Tag(PageElement):
             else:
                 self.interesting_string_types = self.MAIN_CONTENT_STRING_TYPES
 
-    parser_class: Optional[type[BeautifulSoup]]
+    parser_class: Optional[type["BeautifulSoup"]]
     name: str
     namespace: Optional[str]
     prefix: Optional[str]

@@ -167,17 +167,17 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
             sourceline, sourcepos = self.getpos()
         else:
             sourceline = sourcepos = None
-
-        # /* --- New Code for SoupReplacer Execution --- */
-        replacer = getattr(self.soup, "replacer", None)
-        if replacer and hasattr(replacer, "replace_tag"):
-            name = replacer.replace_tag(name)
-        # /* --- End New Code --- */
-
+        if self.soup.replacer and self.soup.replacer.name_xformer:
+            new_name = self.soup.replacer.name_xformer(name)
+            if new_name is not None:
+                name = new_name
+        
         tag = self.soup.handle_starttag(
             name, None, None, attr_dict, sourceline=sourceline, sourcepos=sourcepos
         )
-
+        replacer = getattr(self.soup, "replacer", None)
+        if replacer:
+            replacer.replace(tag)
         if tag and tag.is_empty_element and handle_empty_element:
             self.handle_endtag(name, check_already_closed=False)
             self.already_closed_empty_element.append(name)
@@ -189,14 +189,13 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
     def handle_endtag(self, name: str, check_already_closed: bool = True) -> None:
         # Handle a closing tag, e.g. '</tag>'
 
-        # /* --- New Code for SoupReplacer Execution --- */
-        replacer = getattr(self.soup, "replacer", None)
-        if replacer and hasattr(replacer, "replace_tag"):
-            name = replacer.replace_tag(name)
-        # /* --- End New Code --- */
-
+        if self.soup.replacer and self.soup.replacer.name_xformer:
+            new_name = self.soup.replacer.name_xformer(name)
+            if new_name is not None:
+                name = new_name
         if check_already_closed and name in self.already_closed_empty_element:
             self.already_closed_empty_element.remove(name)
+        
         else:
             self.soup.handle_endtag(name)
 
@@ -330,17 +329,11 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
         self,
         parser_args: Optional[Iterable[Any]] = None,
         parser_kwargs: Optional[Dict[str, Any]] = None,
+        
         **kwargs: Any,
     ):
         """Constructor.
-
-        :param parser_args: Positional arguments to pass into
-            the BeautifulSoupHTMLParser constructor, once it's
-            invoked.
-        :param parser_kwargs: Keyword arguments to pass into
-            the BeautifulSoupHTMLParser constructor, once it's
-            invoked.
-        :param kwargs: Keyword arguments for the superclass constructor.
+        ... (docstring is the same) ...
         """
         # Some keyword arguments will be pulled out of kwargs and placed
         # into parser_kwargs.
@@ -349,7 +342,18 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
             if arg in kwargs:
                 value = kwargs.pop(arg)
                 extra_parser_kwargs[arg] = value
-        super(HTMLParserTreeBuilder, self).__init__(**kwargs)
+
+        # --- MODIFICATION START ---
+        #
+        # Pop 'replacer' from kwargs so we can pass it explicitly
+        # to the TreeBuilder (superclass) constructor.
+        replacer = kwargs.pop('replacer', None)
+        #
+        # --- MODIFICATION END ---
+        
+        # Now pass 'replacer' explicitly, and the rest of kwargs
+        super(HTMLParserTreeBuilder, self).__init__(replacer=replacer, **kwargs)
+        
         parser_args = parser_args or []
         parser_kwargs = parser_kwargs or {}
         parser_kwargs.update(extra_parser_kwargs)

@@ -274,12 +274,7 @@ class BeautifulSoup(Tag):
          TreeBuilder by passing in arguments, not just by saying which
          one to use.
         """
-        ##----the replacer workflow---
-        self.replacer = kwargs.pop('replacer', None)
-        if self.replacer and not isinstance(self.replacer, SoupReplacer):
-            # You might need to import SoupReplacer here if it's in a separate file
-            raise ValueError("The 'replacer' argument must be a SoupReplacer instance.")
-        ##---END----
+       
 
 
         if "convertEntities" in kwargs:
@@ -387,7 +382,9 @@ class BeautifulSoup(Tag):
         # builder, or we have a builder_class that we can instantiate
         # with the remaining **kwargs.
         if builder is None:
-            builder = builder_class(**kwargs)
+            replacer = kwargs.pop("replacer", None)
+            builder = builder_class(replacer=replacer, **kwargs)
+            self.replacer = replacer  #
             if (
                 not original_builder
                 and not (
@@ -444,13 +441,12 @@ class BeautifulSoup(Tag):
                 warnings.warn(
                     "Keyword arguments to the BeautifulSoup constructor will be ignored. These would normally be passed into the TreeBuilder constructor, but a TreeBuilder instance was passed in as `builder`."
                 )
-
+        
         self.builder = builder
         self.is_xml = builder.is_xml
         self.known_xml = self.is_xml
         self._namespaces = dict()
         self.parse_only = parse_only
-
         if hasattr(markup, "read"):  # It's a file-type object.
             markup = markup.read()
         elif not isinstance(markup, (bytes, str)) and not hasattr(markup, "__len__"):
@@ -695,55 +691,59 @@ class BeautifulSoup(Tag):
         self.pushTag(self)
 
     def new_tag(
-        self,
-        name: str,
-        namespace: Optional[str] = None,
-        nsprefix: Optional[str] = None,
-        attrs: Optional[_RawAttributeValues] = None,
-        sourceline: Optional[int] = None,
-        sourcepos: Optional[int] = None,
-        string: Optional[str] = None,
-        **kwattrs: _RawAttributeValue,
-    ) -> Tag:
-        """Create a new Tag associated with this BeautifulSoup object.
+            self,
+            name: str,
+            namespace: Optional[str] = None,
+            nsprefix: Optional[str] = None,
+            attrs: Optional[_RawAttributeValues] = None,
+            sourceline: Optional[int] = None,
+            sourcepos: Optional[int] = None,
+            string: Optional[str] = None,
+            **kwattrs: _RawAttributeValue,
+        ) -> Tag:
+            """Create a new Tag associated with this BeautifulSoup object.
+            
+            (The rest of the docstring remains the same...)
+            """
 
-        :param name: The name of the new Tag.
-        :param namespace: The URI of the new Tag's XML namespace, if any.
-        :param prefix: The prefix for the new Tag's XML namespace, if any.
-        :param attrs: A dictionary of this Tag's attribute values; can
-            be used instead of ``kwattrs`` for attributes like 'class'
-            that are reserved words in Python.
-        :param sourceline: The line number where this tag was
-            (purportedly) found in its source document.
-        :param sourcepos: The character position within ``sourceline`` where this
-            tag was (purportedly) found.
-        :param string: String content for the new Tag, if any.
-        :param kwattrs: Keyword arguments for the new Tag's attribute values.
+            attr_container = self.builder.attribute_dict_class(**kwattrs)
+            if attrs is not None:
+                attr_container.update(attrs)
+                
+            # --- Step 1: Get the replacer from the builder ---
+            replacer = None
+            if self.builder is not None and self.builder.replacer is not None:
+                replacer = self.builder.replacer
+            # --- End modification ---
 
-        """
-        attr_container = self.builder.attribute_dict_class(**kwattrs)
-        if attrs is not None:
-            attr_container.update(attrs)
-        tag_class = self.element_classes.get(Tag, Tag)
+            tag_class = self.element_classes.get(Tag, Tag)
 
-        # Assume that this is either Tag or a subclass of Tag. If not,
-        # the user brought type-unsafety upon themselves.
-        tag_class = cast(Type[Tag], tag_class)
-        tag = tag_class(
-            None,
-            self.builder,
-            name,
-            namespace,
-            nsprefix,
-            attr_container,
-            sourceline=sourceline,
-            sourcepos=sourcepos,
-        )
+            # Assume that this is either Tag or a subclass of Tag. If not,
+            # the user brought type-unsafety upon themselves.
+            tag_class = cast(Type[Tag], tag_class)
+            
+            # --- Step 2: Pass the replacer to the Tag constructor ---
+            tag = tag_class(
+                None,
+                self.builder,
+                name,
+                namespace,
+                nsprefix,
+                attr_container,
+                sourceline=sourceline,
+                sourcepos=sourcepos,
+                replacer=replacer  # <--- Add the replacer here
+            )
 
-        if string is not None:
-            tag.string = string
-        return tag
+            if string is not None:
+                tag.string = string
+                
+            # --- Step 3: Return the 'tag' object you just created ---
+            return tag
 
+            # (NOTE: Make sure to delete any incorrect 
+            # "return Tag(... **kwargs)" line you might have added before)
+        
     def string_container(
         self, base_class: Optional[Type[NavigableString]] = None
     ) -> Type[NavigableString]:
@@ -1008,6 +1008,7 @@ class BeautifulSoup(Tag):
         sourceline: Optional[int] = None,
         sourcepos: Optional[int] = None,
         namespaces: Optional[Dict[str, str]] = None,
+        
     ) -> Optional[Tag]:
         """Called by the tree builder when a new tag is encountered.
 
@@ -1056,6 +1057,7 @@ class BeautifulSoup(Tag):
             sourceline=sourceline,
             sourcepos=sourcepos,
             namespaces=namespaces,
+            replacer=self.replacer,
         )
         if tag is None:
             return tag

@@ -126,7 +126,19 @@ PYTHON_SPECIFIC_ENCODINGS: Set[_Encoding] = set(
         "string_escape",
     ]
 )
-
+class SoupReplacer:
+    """
+    Specifies a tag replacement to happen during parsing.
+    All occurrences of og_tag will be replaced by alt_tag.
+    """
+    def __init__(self, og_tag, alt_tag):
+        self.og_tag = og_tag
+        self.alt_tag = alt_tag
+    def replace_tag(self, tag_name):
+        
+        if tag_name == self.og_tag:
+            return self.alt_tag
+        return tag_name
 
 class NamespacedAttribute(str):
     """A namespaced attribute (e.g. the 'xml:lang' in 'xml:lang="en"')

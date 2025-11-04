@@ -86,7 +86,8 @@ from .element import (
     Stylesheet,
     Tag,
     TemplateString,
-)
+    SoupReplacer
+) 
 from .formatter import Formatter
 from .filter import (
     ElementFilter,
@@ -134,14 +135,6 @@ new class for the SoupReplacer Implement
 
 """
 
-class SoupReplacer:
-    """
-    Specifies a tag replacement to happen during parsing.
-    All occurrences of og_tag will be replaced by alt_tag.
-    """
-    def __init__(self, og_tag, alt_tag):
-        self.og_tag = og_tag
-        self.alt_tag = alt_tag
 
 
 class BeautifulSoup(Tag):

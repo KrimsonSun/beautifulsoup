@@ -59,6 +59,8 @@ except ImportError:
     LXML_PRESENT = False
     LXML_VERSION = (0,)
 
+##import the SoupReplacer
+
 default_builder: Type[TreeBuilder] = HTMLParserTreeBuilder
 
 BAD_DOCUMENT: str = """A bare string

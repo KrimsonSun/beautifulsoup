@@ -11,7 +11,7 @@ import os # Included for path resolution (for reference, though not strictly use
 import time
 from bs4 import BeautifulSoup, SoupReplacer, SoupStrainer 
 
-# 统一的测试标记，包含所有需要测试的元素
+# 
 TEST_MARKUP = """
 <html>
 <head>

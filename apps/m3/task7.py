@@ -39,7 +39,7 @@ if __name__ == "__main__":
     if not script_dir:
         script_dir = "."
         
-    file_path = os.path.join(script_dir, "ap_news.html")
+    file_path = os.path.join(script_dir, "test.html")
 
     try:
         with open(file_path, 'r', encoding='utf-8') as f:

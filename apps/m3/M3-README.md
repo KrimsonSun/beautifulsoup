@@ -108,3 +108,58 @@ class SoupReplacer:
 
 then update TreeBuilder class and Tag class to initiate the replacer.
 
+## Technical Report:
+
+### Milestone 2
+
+#### Pros:
+
+1.Simple and intuitive API for tag replacement.
+
+2.Easy to understand and implement.
+
+#### Cons:
+
+1.Limited to tag name replacement.
+
+2.Cannot manipulate attributes or perform conditional transformations.
+
+### Milestone 3
+
+#### Pros:
+
+1.Provides full flexibility at the node and attribute level.
+
+2.Supports multiple types of transformations (tag name, attributes, in-place side effects).
+
+#### Cons:
+
+1.Slightly more complex API; requires user to understand lambdas/functions.
+
+2.Users must be aware that name_xformer receives strings, while attrs_xformer and xformer receive Tag objects.
+
+### Potential Future Enhancements
+
+1.Selector-based transformations
+
+Allow users to provide CSS selectors or XPath-like queries to target nodes.
+
+This would reduce the need for conditional logic in lambda functions.
+
+2.Chaining transformations
+
+Enable multiple SoupReplacer instances to be combined or chained for batch processing.
+
+3.Logging / Debugging support
+
+Optional logging of transformations could help users verify replacements during parsing.
+
+4.Performance optimization
+
+If applied to large HTML/XML documents, repeated function calls for every node could be optimized.
+
+Consider caching common transformations or supporting batch operations.
+
+### Conclusion
+
+Milestone 3 significantly extends SoupReplacer from a simple tag replacement utility to a powerful, node-level transformation tool. The new API balances flexibility with usability, enabling complex HTML modifications during parsing while maintaining backward compatibility with Milestone 2. Future enhancements could further improve usability, performance, and debugging capabilities.

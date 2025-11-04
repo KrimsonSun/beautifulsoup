@@ -108,6 +108,27 @@ class SoupReplacer:
 
 then update TreeBuilder class and Tag class to initiate the replacer.
 
+## Test:
+test is in bs4\tests\test_soup_replacer.py
+task7.py in Apps\m3
+
+usage of task7:
+```bash
+    .\venv\Scripts\Activate.ps1
+    cd Apps
+    cd m3
+    python task7.py test.html
+
+
+```
+
+usage of test
+```bash
+    cd bs4
+    cd tests
+    python test_soup_replacer.py
+```
+
 ## Technical Report:
 
 ### Milestone 2

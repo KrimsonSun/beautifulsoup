@@ -220,10 +220,11 @@ class TreeBuilder(object):
         empty_element_tags: Set[str] = USE_DEFAULT,
         attribute_dict_class: Type[AttributeDict] = AttributeDict,
         attribute_value_list_class: Type[AttributeValueList] = AttributeValueList,
-
+        replacer=None,
+        **kwargs: Any
     ):
 
-
+        self.replacer = kwargs.pop('replacer', None)
         self.soup = None
         if multi_valued_attributes is self.USE_DEFAULT:
             multi_valued_attributes = self.DEFAULT_CDATA_LIST_ATTRIBUTES
@@ -246,7 +247,9 @@ class TreeBuilder(object):
         self.string_containers = string_containers
         self.attribute_dict_class = attribute_dict_class
         self.attribute_value_list_class = attribute_value_list_class
-
+        self.replacer = replacer
+        
+    
     NAME: str = "[Unknown tree builder]"
     ALTERNATE_NAMES: Iterable[str] = []
     features: Iterable[str] = []

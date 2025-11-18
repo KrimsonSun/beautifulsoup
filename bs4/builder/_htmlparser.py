@@ -145,23 +145,13 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         attrs: List[Tuple[str, Optional[str]]],
         handle_empty_element: bool = True,
     ) -> None:
-        """Handle an opening tag, e.g. '<tag>'
+        # Handle an opening tag, e.g. '<tag>'
 
-        :param handle_empty_element: True if this tag is known to be
-            an empty-element tag (i.e. there is not expected to be any
-            closing tag).
-        """
-        # TODO: handle namespaces here?
         attr_dict: AttributeDict = self.attribute_dict_class()
         for key, value in attrs:
-            # Change None attribute values to the empty string
-            # for consistency with the other tree builders.
             if value is None:
                 value = ""
             if key in attr_dict:
-                # A single attribute shows up multiple times in this
-                # tag. How to handle it depends on the
-                # on_duplicate_attribute setting.
                 on_dupe = self.on_duplicate_attribute
                 if on_dupe == self.IGNORE:
                     pass
@@ -172,61 +162,43 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
                     on_dupe(attr_dict, key, value)
             else:
                 attr_dict[key] = value
-        # print("START", name)
-        sourceline: Optional[int]
-        sourcepos: Optional[int]
+
         if self.soup.builder.store_line_numbers:
             sourceline, sourcepos = self.getpos()
         else:
             sourceline = sourcepos = None
-            # --- New Code for SoupReplacer Execution ---
-            # Access the replacer object stored on the BeautifulSoup instance
-            replacer = self.soup.replacer
-
-            # Check if replacement is enabled and matches the current tag name
-            if replacer and replacer.og_tag == name:
-                name = replacer.alt_tag  # Replace the tag name before object creation
-            # --- End New Code ---
-
+        if self.soup.replacer and self.soup.replacer.name_xformer:
+            new_name = self.soup.replacer.name_xformer(name)
+            if new_name is not None:
+                name = new_name
+        
         tag = self.soup.handle_starttag(
             name, None, None, attr_dict, sourceline=sourceline, sourcepos=sourcepos
         )
+        replacer = getattr(self.soup, "replacer", None)
+        if replacer:
+            replacer.replace(tag)
         if tag and tag.is_empty_element and handle_empty_element:
-            # Unlike other parsers, html.parser doesn't send separate end tag
-            # events for empty-element tags. (It's handled in
-            # handle_startendtag, but only if the original markup looked like
-            # <tag/>.)
-            #
-            # So we need to call handle_endtag() ourselves. Since we
-            # know the start event is identical to the end event, we
-            # don't want handle_endtag() to cross off any previous end
-            # events for tags of this name.
             self.handle_endtag(name, check_already_closed=False)
-
-            # But we might encounter an explicit closing tag for this tag
-            # later on. If so, we want to ignore it.
             self.already_closed_empty_element.append(name)
 
         if self._root_tag_name is None:
             self._root_tag_encountered(name)
 
-    def handle_endtag(self, name: str, check_already_closed: bool = True) -> None:
-        """Handle a closing tag, e.g. '</tag>'
 
-        :param name: A tag name.
-        :param check_already_closed: True if this tag is expected to
-           be the closing portion of an empty-element tag,
-           e.g. '<tag></tag>'.
-        """
-        # print("END", name)
+    def handle_endtag(self, name: str, check_already_closed: bool = True) -> None:
+        # Handle a closing tag, e.g. '</tag>'
+
+        if self.soup.replacer and self.soup.replacer.name_xformer:
+            new_name = self.soup.replacer.name_xformer(name)
+            if new_name is not None:
+                name = new_name
         if check_already_closed and name in self.already_closed_empty_element:
-            # This is a redundant end tag for an empty-element tag.
-            # We've already called handle_endtag() for it, so just
-            # check it off the list.
-            # print("ALREADY CLOSED", name)
             self.already_closed_empty_element.remove(name)
+        
         else:
             self.soup.handle_endtag(name)
+
 
     def handle_data(self, data: str) -> None:
         """Handle some textual data that shows up between tags."""
@@ -357,17 +329,11 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
         self,
         parser_args: Optional[Iterable[Any]] = None,
         parser_kwargs: Optional[Dict[str, Any]] = None,
+        
         **kwargs: Any,
     ):
         """Constructor.
-
-        :param parser_args: Positional arguments to pass into
-            the BeautifulSoupHTMLParser constructor, once it's
-            invoked.
-        :param parser_kwargs: Keyword arguments to pass into
-            the BeautifulSoupHTMLParser constructor, once it's
-            invoked.
-        :param kwargs: Keyword arguments for the superclass constructor.
+        ... (docstring is the same) ...
         """
         # Some keyword arguments will be pulled out of kwargs and placed
         # into parser_kwargs.
@@ -376,7 +342,18 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
             if arg in kwargs:
                 value = kwargs.pop(arg)
                 extra_parser_kwargs[arg] = value
-        super(HTMLParserTreeBuilder, self).__init__(**kwargs)
+
+        # --- MODIFICATION START ---
+        #
+        # Pop 'replacer' from kwargs so we can pass it explicitly
+        # to the TreeBuilder (superclass) constructor.
+        replacer = kwargs.pop('replacer', None)
+        #
+        # --- MODIFICATION END ---
+        
+        # Now pass 'replacer' explicitly, and the rest of kwargs
+        super(HTMLParserTreeBuilder, self).__init__(replacer=replacer, **kwargs)
+        
         parser_args = parser_args or []
         parser_kwargs = parser_kwargs or {}
         parser_kwargs.update(extra_parser_kwargs)

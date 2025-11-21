@@ -75,3 +75,8 @@ To do the test on the large fileL: I choose a xml file with many comments, the f
     .\venv\Scripts\Activate.ps1 
     pytest bs4/tests/test_xml_replacer.py
 ```
+
+
+# IMPORTANT UPDATE
+I change the task6 replacer test object, because I update the SoupReplacer in Milestone3 ,
+and I add a test.html without <b> tag ,now the test file will turn a b tag to h2 tag.

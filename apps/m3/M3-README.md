@@ -47,7 +47,8 @@ class SoupReplacer:
         self.name_xformer = name_xformer
         self.attrs_xformer = attrs_xformer
         self.xformer = xformer
-
+        self.og_tag = none
+        self.alt_tag = none
         if args:
             # --- Milestone 2 Logic ---
             if name_xformer or attrs_xformer or xformer:
@@ -56,8 +57,8 @@ class SoupReplacer:
                 )
             
             if len(args) == 2:
-                self.original_tag = args[0]
-                self.replacement_tag = args[1]
+                self.og_tag = og_tag
+                self.alt_tag = alt_tag
                 
                 # Convert M2 logic into an M3 name_xformer
                 def m2_name_xformer_impl(tag):

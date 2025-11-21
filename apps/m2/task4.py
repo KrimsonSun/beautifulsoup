@@ -21,7 +21,7 @@ try:
 
     # 3. Single API call (find_all(True)) to retrieve all parsed elements.
     # Since the SoupStrainer already filtered the tags, this list only contains tags with 'id'.
-    found_elements = soup.find_all(True)
+    found_elements = soup.find_all(True, id=True)# update, use id=True to make sure every tag contains the id
 
     for element in found_elements:
         # Access the 'id' attribute using dictionary-style lookup

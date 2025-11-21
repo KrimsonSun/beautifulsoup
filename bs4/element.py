@@ -140,7 +140,8 @@ class SoupReplacer:
         self.name_xformer = name_xformer
         self.attrs_xformer = attrs_xformer
         self.xformer = xformer
-
+        self.og_tag = None
+        self.alt_tag = None
         # --- Milestone 2 compatibility ---
         if args:
             if name_xformer or attrs_xformer or xformer:
@@ -148,7 +149,9 @@ class SoupReplacer:
             if len(args) != 2:
                 raise ValueError("M2 form: SoupReplacer('old', 'new')")
             old_tag, new_tag = args
-
+            
+            self.og_tag = old_tag
+            self.alt_tag = new_tag
             # M2 uses a simple tag name replacement
             def m2_name_xformer(tag):
                 if tag == old_tag:
@@ -178,21 +181,56 @@ class SoupReplacer:
                     raise TypeError("attrs_xformer must return dict or None")
                 tag.attrs = result
     #   SoupReplacer create soup
-    def __call__(self, markup):
-        """Return a BeautifulSoup object that applies this replacer to all tags."""
-        from bs4 import BeautifulSoup, Tag
+   
+# --- M4 Implementation Start ---
 
-        # Monkey-patch Tag.__init__ to inject replacer
-        original_init = Tag.__init__
+# NOTE: NavigableElement is a custom class created here to mock the base element 
+# in the actual Beautiful Soup library. We assume that the main BeautifulSoup 
+# object and Tag objects inherit from this class to gain iteration functionality.
+class NavigableElement:
+    """
+    Base class for all elements in the parse tree (BeautifulSoup, Tag, NavigableString).
+    This class is modified to implement the non-recursive, depth-first traversal iterator.
+    """
+    
+    # In a real BS4 environment, 'contents' is the list of children.
+    # For this implementation, we assume every node has a 'contents' list (possibly empty).
+    # BeautifulSoup object itself is iterable and acts as the root node.
+    
+    def __init__(self, name=None, contents=None):
+        self.name = name
+        self.contents = contents if contents is not None else []
+        
+    def __iter__(self):
+        """
+        Non-recursive generator that traverses the entire tree (Tags, Strings, etc.)
+        in document order (depth-first).
+        
+        This method avoids collecting nodes into a temporary list.
+        """
+        # We must yield the starting node itself (BeautifulSoup object) first.
+        yield self 
 
-        def patched_init(tag_self, *args, **kwargs):
-            kwargs['replacer'] = self
-            original_init(tag_self, *args, **kwargs)
+        # The stack holds nodes waiting to be processed.
+        stack = []
+        
+        # Initialize stack with children in reverse order
+        # This ensures the LIFO stack pops them in document order (left-to-right)
+        if self.contents:
+            stack.extend(reversed(self.contents))
 
-        Tag.__init__ = patched_init
-        soup = BeautifulSoup(markup, "html.parser")
-        Tag.__init__ = original_init  # Restore
-        return soup
+        while stack:
+            node = stack.pop()
+            
+            # Yield the current node
+            yield node
+            
+            # If the node has contents (i.e., it's a Tag or BeautifulSoup object),
+            # push its children onto the stack in reverse order.
+            if hasattr(node, 'contents') and node.contents:
+                # Add children in reverse order to the stack
+                stack.extend(reversed(node.contents))
+
 
 
 class NamespacedAttribute(str):

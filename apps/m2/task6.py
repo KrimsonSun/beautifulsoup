@@ -4,7 +4,8 @@ import sys
 # Assume the modified bs4 library is accessible in the Python path
 # Ensure both BeautifulSoup and SoupReplacer can be imported from your modified library
 try:
-    from bs4 import BeautifulSoup, SoupReplacer
+    from bs4 import BeautifulSoup
+    from bs4 import SoupReplacer
 except ImportError:
     print("Error: Could not import BeautifulSoup or SoupReplacer.")
     print("Please ensure your modified bs4 package is correctly installed or accessible.")
@@ -17,8 +18,8 @@ def run_task6(file_path: str):
     and saves the output.
     """
 
-    # 1. Define the replacement rule: 'b' tag -> 'blockquote' tag
-    REPLACER = SoupReplacer("b", "blockquote")
+    # 1. Define the replacement rule: 'p' tag -> 'h2' tag
+    REPLACER = SoupReplacer("p", "h2")
 
     try:
         # Read the large markup file
@@ -48,8 +49,8 @@ def run_task6(file_path: str):
         print(f"Time taken for parsing and replacement: {end_time - start_time:.4f} seconds")
 
         # 5. Verification Check (Simple check, not exhaustive)
-        if soup.find('b') is None and soup.find('blockquote') is not None:
-            print("Verification: SUCCESS - Original 'b' tags are gone, 'blockquote' tags found.")
+        if soup.find('p') is None and soup.find('h2') is not None:
+            print("Verification: SUCCESS - Original 'p' tags are gone, 'h2' tags found.")
         else:
             print("Verification: WARNING - Replacement check failed (check output file manually).")
 

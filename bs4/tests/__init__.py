@@ -31,6 +31,9 @@ from bs4._typing import _IncomingMarkup
 from bs4.builder import TreeBuilder
 from bs4.builder._htmlparser import HTMLParserTreeBuilder
 
+from . import element
+SoupReplacer= element.SoupReplacer
+
 from typing import (
     Any,
     Iterable,
@@ -99,6 +102,8 @@ BAD_DOCUMENT: str = """A bare string
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 """
 
+
+    
 
 class SoupTest(object):
     @property

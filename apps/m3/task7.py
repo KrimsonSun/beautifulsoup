@@ -1,5 +1,13 @@
 import os
 from bs4 import BeautifulSoup, SoupReplacer
+'''The attrs_xformer contract mandates it returns the tag's final attribute dictionary.
+
+Returning an empty dictionary ({}) signals the tag must possess zero attributes.
+
+The tag.attrs = {} assignment instantly overwrites and clears all pre-existing attributes on the Tag instance.
+
+'''
+
 
 def attribute_whitelist_xformer(tag):
     """
@@ -34,7 +42,7 @@ if __name__ == "__main__":
     attr_stripper = SoupReplacer(attrs_xformer=attribute_whitelist_xformer)
 
     # 2. Find and read the HTML file
-    # (Assuming ap_news.html is in the same directory as this script)
+    # (Assuming test.html is in the same directory as this script)
     script_dir = os.path.dirname(__file__)
     if not script_dir:
         script_dir = "."
@@ -46,7 +54,7 @@ if __name__ == "__main__":
             html_doc = f.read()
     except FileNotFoundError:
         print(f"Error: File not found {file_path}")
-        print("Please ensure 'ap_news.html' is in the same directory as task7.py.")
+        print("Please ensure 'test.html' is in the same directory as task7.py.")
         exit(1)
 
     print("--- Original HTML (Snippet) ---")

@@ -1,0 +1,15 @@
+--- M4 Document Traversal Demo ---
+Input file: test.html
+Time taken for parsing: 0.000393 seconds
+Starting Depth-First Iteration over the soup object...
+----------------------------------------
+[001] TYPE: String, Content: 'html...'
+[002] TYPE: Tag, Name: <html>
+----------------------------------------
+Traversal complete. Total non-whitespace nodes visited: 2.
+
+--- Performance Comparison (M4 Lazy vs. Eager Loading) ---
+1. M4 Streaming Traversal Time (Lazy): 0.000005 seconds (Time taken while processing/printing)
+2. List Collection Traversal Time (Eager): 0.000002 seconds (Time taken to collect all 3 nodes into a list)
+Note: M4's lazy generator is most efficient when you process a large document and break the loop early.
+------------------------------------------------------------

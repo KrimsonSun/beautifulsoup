@@ -71,6 +71,7 @@ from .css import CSS
 from ._deprecation import (
     _deprecated,
 )
+
 from .element import (
     CData,
     Comment,
@@ -88,6 +89,8 @@ from .element import (
     TemplateString,
     SoupReplacer
 ) 
+
+SoupReplacer= element.SoupReplacer
 from .formatter import Formatter
 from .filter import (
     ElementFilter,

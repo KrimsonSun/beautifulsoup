@@ -151,6 +151,8 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         for key, value in attrs:
             if value is None:
                 value = ""
+                # if the value is none, turn it into a empty String, 
+                # this line will turn datatype to str.
             if key in attr_dict:
                 on_dupe = self.on_duplicate_attribute
                 if on_dupe == self.IGNORE:
@@ -159,7 +161,11 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
                     attr_dict[key] = value
                 else:
                     on_dupe = cast(_DuplicateAttributeHandler, on_dupe)
+                    #if it is a function 
+                    #when detact a attribute is duplicated
+                    #use this func to deal with
                     on_dupe(attr_dict, key, value)
+                    # do replacement with func
             else:
                 attr_dict[key] = value
 
@@ -169,6 +175,8 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
             sourceline = sourcepos = None
         if self.soup.replacer and self.soup.replacer.name_xformer:
             new_name = self.soup.replacer.name_xformer(name)
+            # this para is a function: self.soup.replacer.name_xformer(name).
+            # To accept the parameter that instruct the replacement by specific rules.
             if new_name is not None:
                 name = new_name
         

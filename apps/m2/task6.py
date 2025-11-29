@@ -18,8 +18,8 @@ def run_task6(file_path: str):
     and saves the output.
     """
 
-    # 1. Define the replacement rule: 'p' tag -> 'h2' tag
-    REPLACER = SoupReplacer("p", "h2")
+    # 1. Define the replacement rule: 'pb' tag -> 'blockquate' tag
+    REPLACER = SoupReplacer("b", "blockquate")
 
     try:
         # Read the large markup file

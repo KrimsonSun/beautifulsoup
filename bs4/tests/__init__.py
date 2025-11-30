@@ -31,8 +31,7 @@ from bs4._typing import _IncomingMarkup
 from bs4.builder import TreeBuilder
 from bs4.builder._htmlparser import HTMLParserTreeBuilder
 
-from . import element
-SoupReplacer= element.SoupReplacer
+
 
 from typing import (
     Any,

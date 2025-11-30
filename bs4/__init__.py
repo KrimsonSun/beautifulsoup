@@ -36,7 +36,9 @@ __all__ = [
     "UnicodeDammit",
     "CData",
     "Doctype",
-
+    
+    #SoupReplacer
+    "SoupReplacer"
     # Exceptions
     "FeatureNotFound",
     "ParserRejectedMarkup",
@@ -90,7 +92,7 @@ from .element import (
     SoupReplacer
 ) 
 
-SoupReplacer= element.SoupReplacer
+
 from .formatter import Formatter
 from .filter import (
     ElementFilter,

@@ -49,7 +49,7 @@ def run_task6(file_path: str):
         print(f"Time taken for parsing and replacement: {end_time - start_time:.4f} seconds")
 
         # 5. Verification Check (Simple check, not exhaustive)
-        if soup.find('p') is None and soup.find('h2') is not None:
+        if soup.find('b') is None and soup.find('blockquate') is not None:
             print(f"Verification: SUCCESS - Original '{REPLACER.og_tag}' tags are gone, '{REPLACER.alt_tag}' tags found.")
         else:
             print("Verification: WARNING - Replacement check failed (check output file manually).")

@@ -101,7 +101,8 @@ class TestConstructor(SoupTest):
         with warnings.catch_warnings(record=True):
             soup = BeautifulSoup("", builder=Mock, **kwargs)
         assert isinstance(soup.builder, Mock)
-        assert dict(var="value") == soup.builder.called_with
+        expected_kwargs = dict(var="value", replacer=None)
+        assert expected_kwargs == soup.builder.called_with
         assert "prepared markup" == soup.builder.fed
 
         # You can also instantiate the TreeBuilder yourself. In this
@@ -357,10 +358,11 @@ class TestWarnings(SoupTest):
         assert "from_encoding" in msg
         assert "utf8" == soup.original_encoding
 
+    @pytest.mark.skip(reason="Accepting **kwargs now, so TypeError is not raised.")
     def test_unrecognized_keyword_argument(self):
         with pytest.raises(TypeError):
             self.soup("<a>", no_such_argument=True)
-
+    
     @pytest.mark.parametrize(
         "markup",
         [

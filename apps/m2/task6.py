@@ -50,7 +50,7 @@ def run_task6(file_path: str):
 
         # 5. Verification Check (Simple check, not exhaustive)
         if soup.find('p') is None and soup.find('h2') is not None:
-            print("Verification: SUCCESS - Original 'p' tags are gone, 'h2' tags found.")
+            print(f"Verification: SUCCESS - Original '{REPLACER.og_tag}' tags are gone, '{REPLACER.alt_tag}' tags found.")
         else:
             print("Verification: WARNING - Replacement check failed (check output file manually).")
 
